@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Etch-a-Sketch</title>
+    </head>
+
+<style>
+    #header {
+        margin: auto;
+        text-align: center;
+    }
+
+    #grid-container {
+        display: grid;
+        margin: auto;
+        border: 3px solid black;
+        grid-template-columns: repeat(16, 1fr);
+        grid-template-rows: repeat(16, 1fr);
+        width: 70vmin;
+        height: 70vmin;
+    }
+
+    .cell {
+        border: 1px solid gray;
+        
+    }
+
+    .grey-background {
+        background-color: grey;
+    }
+
+
+</style>
+    
+<body>
+    <div id= 'header'>
+        <h1>Etch-a-Sketch</h1>
+    </div>
+    <div id= 'grid-container'></div>
+</body>
+
+
+<script>
+    // fills in the grid container with 256 'cells', this will be improved later so that it can accomodate
+    // sizes other than a 16 x 16 grid
+    for (let i = 0; i < 256; i++) {
+        createGridCell();
+    }
+
+// changes the background to grey to "fill in" the square
+function fillIn(e) {
+    e.target.classList.add('grey-background');
+}
+
+// creates a new div, gives it the class "cell" and gives it a mouseover listener
+function createGridCell() {
+    let newDiv = document.createElement('div');
+    newDiv.className= 'cell';
+    let gridContainer = document.querySelector('#grid-container');
+    gridContainer.appendChild(newDiv);
+    newDiv.addEventListener("mouseover", fillIn);
+}
+
+</script>
+
+</html>
