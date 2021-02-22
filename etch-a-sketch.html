@@ -14,8 +14,6 @@
         display: grid;
         margin: auto;
         border: 3px solid black;
-        grid-template-columns: repeat(16, 1fr);
-        grid-template-rows: repeat(16, 1fr);
         width: 70vmin;
         height: 70vmin;
     }
@@ -29,6 +27,16 @@
         background-color: grey;
     }
 
+    #button-div {
+        display: flex;
+        justify-content: center;
+        
+    }
+
+    button {
+        font-size: large;
+        margin: 10px;
+    }
 
 </style>
     
@@ -36,16 +44,44 @@
     <div id= 'header'>
         <h1>Etch-a-Sketch</h1>
     </div>
+
+    <div id= 'button-div'>
+        <button id = 'new-grid'>Create a New Grid</button>
+        <button id = 'clear-grid'>Clear Current Grid</button> 
+    </div>
+
     <div id= 'grid-container'></div>
 </body>
 
 
 <script>
-    // fills in the grid container with 256 'cells', this will be improved later so that it can accomodate
-    // sizes other than a 16 x 16 grid
-    for (let i = 0; i < 256; i++) {
+    let initialSize = 16;
+    let gridContainer = document.querySelector('#grid-container');
+    
+    setGridSize(initialSize);
+    
+    // fills in the grid container with the correct number of cells
+    fillGridWithCells(initialSize);
+    
+    // create event listeners for the two buttons
+    newGridButton = document.querySelector('#new-grid');
+    clearGridButton = document.querySelector('#clear-grid');
+    newGridButton.addEventListener('click', createNewGrid);
+    clearGridButton.addEventListener('click', clearFilledCells);
+
+// updates the grid size with the number given in each row/column
+function setGridSize(size) {
+    gridContainer.style.gridTemplateColumns = 'repeat(' + size + ', auto)';
+    gridContainer.style.gridTemplateRows = 'repeat(' + size + ', auto)';
+}
+
+// creates enough cells to fill a square grid that is (size by size) total cells large
+function fillGridWithCells(size) {
+    let totalCells = size * size;
+    for (let i = 0; i < totalCells; i++) {
         createGridCell();
     }
+}
 
 // changes the background to grey to "fill in" the square
 function fillIn(e) {
@@ -56,9 +92,52 @@ function fillIn(e) {
 function createGridCell() {
     let newDiv = document.createElement('div');
     newDiv.className= 'cell';
-    let gridContainer = document.querySelector('#grid-container');
     gridContainer.appendChild(newDiv);
     newDiv.addEventListener("mouseover", fillIn);
+}
+
+// Creating the new grid has multiple steps: 
+// Remove existing cells, set new grid size, fill new grid with cells
+function createNewGrid() {
+    removeGridCells();
+    let size = getSize();
+    setGridSize(size);
+    fillGridWithCells(size);
+}
+
+// Prompts the user for a size between 5 and 100
+function getSize() {
+    let keepGoing = true;
+    let size = 0; 
+    while(keepGoing) {
+        size = prompt("Please enter a row size: (5-100)");
+        if (size >= 5 && size <= 100) {
+            keepGoing = false;
+        } 
+    }
+    console.log(size);
+    return size;
+}
+
+// Removes the "grey-background" class from any cells that have it
+// Turning the cells back to white
+function clearFilledCells() {
+    let filledCells = document.getElementsByClassName('grey-background');
+
+    for (let i = 0; i < filledCells.length; i++) {
+        filledCells[i].classList.remove('grey-background');
+        i--;
+    }
+}
+
+// Removes all of the currently existing grid cells
+function removeGridCells() {
+    let allCells = document.getElementsByClassName('cell');
+
+    for (let i = 0; i < allCells.length; i++) {
+        allCells[i].remove();
+        i--;
+    }
 }
 
 </script>
