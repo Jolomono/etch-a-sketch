@@ -7,7 +7,7 @@
 <style>
     #header {
         margin: auto;
-        text-align: center;
+        text-align: center;  
     }
 
     #grid-container {
@@ -16,26 +16,56 @@
         border: 3px solid black;
         width: 70vmin;
         height: 70vmin;
+        background-color: white;
+    }
+
+    body {
+        background-color: cornflowerblue;
     }
 
     .cell {
-        border: 1px solid gray;
-        
-    }
-
-    .grey-background {
-        background-color: grey;
+        border: 1px solid grey;   
     }
 
     #button-div {
         display: flex;
-        justify-content: center;
-        
+        justify-content: center;        
     }
 
     button {
         font-size: large;
         margin: 10px;
+    }
+
+    button:hover {
+        font-weight: bold;
+    }
+
+    #color-button-div {
+        display: flex;
+        justify-content: center;
+    }
+
+    #grey-button {
+        background-color:grey;
+        color: white;
+        border-color: black;
+        text-shadow: 1px 1px black;
+
+    }
+
+    #random-color-button { 
+        background-image: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+        color: white;   
+        text-shadow: 1px 1px black;
+        border-color: black;
+    }
+
+    #shading-button {
+        background-image: linear-gradient(to right, lightgray, black);
+        color: white;           
+        text-shadow: 1px 1px black;
+        border-color: black;
     }
 
 </style>
@@ -49,25 +79,45 @@
         <button id = 'new-grid'>Create a New Grid</button>
         <button id = 'clear-grid'>Clear Current Grid</button> 
     </div>
+    <div id= 'color-button-div'>          
+        <button id= 'grey-button'>Grey</button>
+        <button id= 'random-color-button'>Random Color</button>
+        <button id= 'shading-button'>Shading</button>
+    </div>
 
     <div id= 'grid-container'></div>
 </body>
 
 
 <script>
-    let initialSize = 16;
+    let size = 16;
     let gridContainer = document.querySelector('#grid-container');
+
+    // Allow multiple modes: (default to grey)
+    // 'grey' will fill in upon mouseover in grey
+    // 'color' will fill in with a random color
+    // 'shading' will shade darker each time a cell is moused over
+    let mode = 'grey';
     
-    setGridSize(initialSize);
+    // creates the initial grid layout 
+    setGridSize(size);
     
     // fills in the grid container with the correct number of cells
-    fillGridWithCells(initialSize);
+    fillGridWithCells(size);
     
-    // create event listeners for the two buttons
+    // create event listeners for the New Grid and Clear Grid buttons
     newGridButton = document.querySelector('#new-grid');
     clearGridButton = document.querySelector('#clear-grid');
     newGridButton.addEventListener('click', createNewGrid);
     clearGridButton.addEventListener('click', clearFilledCells);
+
+    // create event listeners for the color change buttons
+    greyButton = document.querySelector('#grey-button');
+    randomColorButton = document.querySelector('#random-color-button');
+    shadingButton = document.querySelector('#shading-button');
+    greyButton.addEventListener('click', swapToGrey);
+    randomColorButton.addEventListener('click', swapToColor);
+    shadingButton.addEventListener('click', swapToShading);
 
 // updates the grid size with the number given in each row/column
 function setGridSize(size) {
@@ -84,31 +134,78 @@ function fillGridWithCells(size) {
 }
 
 // changes the background to grey to "fill in" the square
-function fillIn(e) {
-    e.target.classList.add('grey-background');
+function fillInGrey(e) {
+    e.target.style.backgroundColor = "grey";
+    e.target.classList.add('filled-in');
+}
+
+// changes the background to a random rgb color to "fill in" the square
+function fillInRandomColor(e) {
+    let red = getRndInteger(0,255);
+    let green = getRndInteger(0,255);
+    let blue = getRndInteger(0,255);
+    e.target.style.backgroundColor = "rgb(" + red + "," + green + "," + blue + ")";
+    e.target.classList.add('filled-in');    
+}
+
+// adds shading to gradually "fill in" the square
+function fillInShade(e) {
+    let alphaValue = getAlphaValue(e.target.style.backgroundColor);
+    if (alphaValue < 1) {
+        alphaValue += 0.10;
+    }
+    e.target.style.backgroundColor = "rgb(0, 0, 0," + alphaValue + ")";
+    e.target.classList.add('filled-in');
+}
+
+// parses the alpha value given an rgba color
+// javascript will convert an rgba value with an alpha value of 1 to the corresponding rgb value without an alpha value
+// if the array just has 3 values so it's just an rgb value, the value returned is 1 to keep the color completely opaque
+// if color isn't rgba or rgb, returns 0 and logs an error message in the console
+function getAlphaValue(color) {
+    let arr = color.split(",");
+    if (arr.length == 4) {
+        return parseFloat(arr[3]);
+    } else if (arr.length == 3) {
+        return 1;
+    } else {
+        console.log(color);
+        console.log("Color value sent to getAlphaValue was invalid.");
+        return 0; 
+    }
 }
 
 // creates a new div, gives it the class "cell" and gives it a mouseover listener
+// sets the color to a completely transparent black, so "white", rgba(0,0,0,0)
 function createGridCell() {
     let newDiv = document.createElement('div');
     newDiv.className= 'cell';
+    newDiv.style.backgroundColor = ("rgba(0,0,0,0)");
     gridContainer.appendChild(newDiv);
-    newDiv.addEventListener("mouseover", fillIn);
+    if (mode == 'grey') {
+        newDiv.addEventListener("mouseover", fillInGrey);
+    } 
+    else if (mode == 'color') {
+        newDiv.addEventListener("mouseover", fillInRandomColor);
+    }
+    else if (mode == 'shading') {
+        newDiv.addEventListener("mouseover", fillInShade);
+    }  
 }
 
 // Creating the new grid has multiple steps: 
 // Remove existing cells, set new grid size, fill new grid with cells
 function createNewGrid() {
     removeGridCells();
-    let size = getSize();
+    size = getSize();
     setGridSize(size);
     fillGridWithCells(size);
 }
 
+
 // Prompts the user for a size between 5 and 100
 function getSize() {
     let keepGoing = true;
-    let size = 0; 
     while(keepGoing) {
         size = prompt("Please enter a row size: (5-100)");
         if (size >= 5 && size <= 100) {
@@ -119,13 +216,14 @@ function getSize() {
     return size;
 }
 
-// Removes the "grey-background" class from any cells that have it
-// Turning the cells back to white
+// Removes the "filled-in" class from any cells that have it
+// Turns the cells back to white (to simplify and make the shader work, white is actually a completely transparent black rgba(0,0,0,0))
 function clearFilledCells() {
-    let filledCells = document.getElementsByClassName('grey-background');
+    let filledCells = document.getElementsByClassName('filled-in');
 
     for (let i = 0; i < filledCells.length; i++) {
-        filledCells[i].classList.remove('grey-background');
+        filledCells[i].style.backgroundColor = ("rgba(0,0,0,0)");
+        filledCells[i].classList.remove('filled-in');
         i--;
     }
 }
@@ -137,6 +235,35 @@ function removeGridCells() {
     for (let i = 0; i < allCells.length; i++) {
         allCells[i].remove();
         i--;
+    }
+}
+
+// returns a number between min and max, both included
+function getRndInteger(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min; 
+}
+
+function swapToGrey() {
+    if (mode != 'grey') {
+        mode = 'grey';
+        removeGridCells();
+        fillGridWithCells(size);
+    }
+}
+
+function swapToColor() {
+    if (mode != 'color') {
+        mode = 'color';
+        removeGridCells();
+        fillGridWithCells(size);
+    }
+}
+
+function swapToShading() {
+    if (mode != 'shading') {
+        mode = 'shading';
+        removeGridCells();
+        fillGridWithCells(size);
     }
 }
 
